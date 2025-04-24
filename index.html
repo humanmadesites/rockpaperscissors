@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors - Ultimate Duel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .bounce-animation {
+            animation: bounce 1s infinite;
+        }
+        .choice-hover:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .win-shadow {
+            box-shadow: 0 0 30px rgba(52, 211, 153, 0.7);
+        }
+        .lose-shadow {
+            box-shadow: 0 0 30px rgba(248, 113, 113, 0.7);
+        }
+        .draw-shadow {
+            box-shadow: 0 0 30px rgba(156, 163, 175, 0.7);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen text-white font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-600">
+                Rock Paper Scissors
+            </h1>
+            <p class="text-xl text-gray-300">The ultimate hand duel</p>
+        </header>
+
+        <!-- Game Stats -->
+        <div class="flex justify-center mb-12">
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg backdrop-blur-sm bg-opacity-60">
+                <div class="grid grid-cols-3 gap-8 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-emerald-400" id="wins">0</div>
+                        <div class="text-gray-400">Wins</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-amber-400" id="ties">0</div>
+                        <div class="text-gray-400">Ties</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-red-400" id="losses">0</div>
+                        <div class="text-gray-400">Losses</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="flex flex-col items-center mb-12">
+            <!-- Computer Choice -->
+            <div class="mb-12 text-center">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-300">Computer</h2>
+                <div id="computer-choice" class="w-40 h-40 bg-gray-800 rounded-full flex items-center justify-center mx-auto transition-all duration-300">
+                    <i class="fas fa-question text-6xl text-gray-500"></i>
+                </div>
+            </div>
+
+            <!-- Result Display -->
+            <div id="result" class="bg-gray-800 rounded-full px-8 py-4 mb-12 text-2xl font-bold text-center min-w-[300px] bg-opacity-60 backdrop-blur-sm">
+                Choose your weapon!
+            </div>
+
+            <!-- Player Choices -->
+            <div class="text-center">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-300">Your Choice</h2>
+                <div class="flex gap-8 justify-center mb-4">
+                    <button 
+                        class="choice-btn w-24 h-24 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg transition-all duration-300 choice-hover"
+                        data-choice="rock"
+                    >
+                        <i class="fas fa-hand-rock text-4xl"></i>
+                    </button>
+                    <button 
+                        class="choice-btn w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-all duration-300 choice-hover"
+                        data-choice="paper"
+                    >
+                        <i class="fas fa-hand-paper text-4xl"></i>
+                    </button>
+                    <button 
+                        class="choice-btn w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-all duration-300 choice-hover"
+                        data-choice="scissors"
+                    >
+                        <i class="fas fa-hand-scissors text-4xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game History -->
+        <div class="max-w-3xl mx-auto bg-gray-800 rounded-xl p-6 bg-opacity-60 backdrop-blur-sm mb-12">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Game History</h2>
+            <div id="history" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- History items will be added here -->
+            </div>
+        </div>
+
+        <!-- How to Play -->
+        <div class="max-w-3xl mx-auto bg-gray-800 rounded-xl p-6 mb-12 bg-opacity-60 backdrop-blur-sm">
+            <h2 class="text-2xl font-semibold mb-4 text-center">How to Play</h2>
+            <div class="prose prose-invert max-w-none">
+                <ul>
+                    <li>Select either Rock, Paper, or Scissors by clicking the corresponding button.</li>
+                    <li>The computer will randomly select its choice.</li>
+                    <li>Rock beats Scissors, Scissors beat Paper, and Paper beats Rock.</li>
+                    <li>The game keeps track of your wins, losses, and ties.</li>
+                </ul>
+                <p class="mt-4 text-center italic text-gray-400">
+                    May luck be on your side in this ancient game of strategy and chance!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                wins: 0,
+                ties: 0,
+                losses: 0,
+                history: []
+            };
+
+            // DOM elements
+            const resultEl = document.getElementById('result');
+            const computerChoiceEl = document.getElementById('computer-choice');
+            const winsEl = document.getElementById('wins');
+            const tiesEl = document.getElementById('ties');
+            const lossesEl = document.getElementById('losses');
+            const historyEl = document.getElementById('history');
+            const choiceBtns = document.querySelectorAll('.choice-btn');
+
+            // Choices with corresponding icons
+            const choices = {
+                rock: {
+                    icon: 'hand-rock',
+                    color: 'from-red-500 to-red-600'
+                },
+                paper: {
+                    icon: 'hand-paper',
+                    color: 'from-blue-500 to-blue-600'
+                },
+                scissors: {
+                    icon: 'hand-scissors',
+                    color: 'from-green-500 to-green-600'
+                }
+            };
+
+            // Game logic
+            function getComputerChoice() {
+                const random = Math.random();
+                if (random < 0.33) return 'rock';
+                if (random < 0.66) return 'paper';
+                return 'scissors';
+            }
+
+            function determineWinner(playerChoice, computerChoice) {
+                if (playerChoice === computerChoice) return 'draw';
+                
+                const winConditions = {
+                    rock: 'scissors',
+                    paper: 'rock',
+                    scissors: 'paper'
+                };
+                
+                return winConditions[playerChoice] === computerChoice ? 'win' : 'lose';
+            }
+
+            function updateStats(result) {
+                if (result === 'win') gameState.wins++;
+                else if (result === 'lose') gameState.losses++;
+                else gameState.ties++;
+                
+                winsEl.textContent = gameState.wins;
+                tiesEl.textContent = gameState.ties;
+                lossesEl.textContent = gameState.losses;
+            }
+
+            function updateHistory(playerChoice, computerChoice, result) {
+                let resultText, resultIcon, resultColor;
+                
+                if (result === 'win') {
+                    resultText = 'You Won!';
+                    resultIcon = 'trophy';
+                    resultColor = 'text-emerald-400';
+                } else if (result === 'lose') {
+                    resultText = 'You Lost';
+                    resultIcon = 'heart-crack';
+                    resultColor = 'text-red-400';
+                } else {
+                    resultText = 'Tie Game';
+                    resultIcon = 'equals';
+                    resultColor = 'text-gray-400';
+                }
+                
+                const historyItem = document.createElement('div');
+                historyItem.className = 'bg-gray-700 rounded-lg p-4 flex items-center gap-4';
+                historyItem.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center bg-gradient-to-br ${choices[playerChoice].color}">
+                                <i class="fas fa-${choices[playerChoice].icon} text-xs"></i>
+                            </div>
+                            <span>vs</span>
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center bg-gradient-to-br ${choices[computerChoice].color}">
+                                <i class="fas fa-${choices[computerChoice].icon} text-xs"></i>
+                            </div>
+                        </div>
+                        <span class="${resultColor} font-semibold">
+                            <i class="fas fa-${resultIcon} mr-1"></i>${resultText}
+                        </span>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        ${new Date().toLocaleTimeString()}
+                    </div>
+                `;
+                
+                historyEl.prepend(historyItem);
+                
+                // Keep only the last 6 history items
+                if (historyEl.children.length > 6) {
+                    historyEl.removeChild(historyEl.lastChild);
+                }
+            }
+
+            function resetVisualEffects() {
+                computerChoiceEl.classList.remove(
+                    'win-shadow', 'lose-shadow', 'draw-shadow',
+                    'bg-gradient-to-br', 'from-red-500', 'to-red-600',
+                    'from-blue-500', 'to-blue-600',
+                    'from-green-500', 'to-green-600'
+                );
+                computerChoiceEl.className = 'w-40 h-40 bg-gray-800 rounded-full flex items-center justify-center mx-auto transition-all duration-300';
+            }
+
+            function animateComputerChoice(choice) {
+                resetVisualEffects();
+                
+                // Show animation for computer thinking
+                computerChoiceEl.innerHTML = '<i class="fas fa-random text-6xl text-amber-400 bounce-animation"></i>';
+                
+                setTimeout(() => {
+                    // Remove animation class after showing the actual choice
+                    computerChoiceEl.innerHTML = `<i class="fas fa-${choices[choice].icon} text-6xl"></i>`;
+                    
+                    // Update visual styling
+                    computerChoiceEl.classList.add(
+                        'bg-gradient-to-br',
+                        choices[choice].color
+                    );
+                }, 1000);
+            }
+
+            function showResult(result) {
+                resultEl.classList.remove('text-emerald-400', 'text-red-400', 'text-gray-400');
+                
+                setTimeout(() => {
+                    if (result === 'win') {
+                        resultEl.textContent = 'You Win!';
+                        resultEl.classList.add('text-emerald-400');
+                        computerChoiceEl.classList.add('lose-shadow');
+                    } else if (result === 'lose') {
+                        resultEl.textContent = 'You Lose!';
+                        resultEl.classList.add('text-red-400');
+                        computerChoiceEl.classList.add('win-shadow');
+                    } else {
+                        resultEl.textContent = "It's a Tie!";
+                        resultEl.classList.add('text-gray-400');
+                        computerChoiceEl.classList.add('draw-shadow');
+                    }
+                }, 1000);
+            }
+
+            // Event listeners
+            choiceBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const playerChoice = btn.dataset.choice;
+                    const computerChoice = getComputerChoice();
+                    const result = determineWinner(playerChoice, computerChoice);
+                    
+                    // Reset UI for new round
+                    resultEl.textContent = 'Waiting for computer...';
+                    resultEl.className = 'bg-gray-800 rounded-full px-8 py-4 mb-12 text-2xl font-bold text-center min-w-[300px] bg-opacity-60 backdrop-blur-sm';
+                    
+                    // Animate computer choice and show results
+                    animateComputerChoice(computerChoice);
+                    showResult(result);
+                    
+                    // Update game state
+                    updateStats(result);
+                    updateHistory(playerChoice, computerChoice, result);
+                });
+            });
+
+            // Initialize with question mark
+            computerChoiceEl.innerHTML = '<i class="fas fa-question text-6xl text-gray-500"></i>';
+        });
+    </script>
+</body>
+</html>
